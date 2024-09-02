@@ -1,0 +1,1 @@
+You will find the contents of the database in the tar file in this folder. When using PostgreSQL to use the database, you will need to restore it by passing the url for the tar file (wherever it may be located) into the restore url section
