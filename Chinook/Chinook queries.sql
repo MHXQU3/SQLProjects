@@ -95,12 +95,72 @@ GROUP BY manager;
 
 -- Advanced
 -- 21. Get the name and total sales amount for the top customer.
--- Find the track with the longest duration and its associated album and artist.
--- Get the total revenue generated per genre.
--- Retrieve a list of customers who have not made any purchases.
--- Find all tracks that belong to more than one playlist.
--- Calculate the total number of tracks sold for each media type.
--- List the names of all customers who have made purchases in more than one country.
--- Get the artist who has sold the most tracks and the total sales amount.
--- List the albums that have no tracks associated with them.
--- Retrieve the names of all employees who have not supervised any other employees.
+SELECT CONCAT(c.first_name, ' ', c.last_name) AS customer_name, SUM(i.total) AS total_sales
+FROM customer c
+JOIN invoice i ON c.customer_id = i.customer_id
+GROUP BY customer_name
+ORDER BY total_sales DESC
+LIMIT 1;
+-- 22. Find the track with the longest duration and its associated album and artist.
+SELECT t.name AS track_name, a.title AS album_title, ar.name AS artist_name, t.milliseconds AS duration
+FROM track t
+JOIN album a ON t.album_id = a.album_id
+JOIN artist ar ON a.artist_id = ar.artist_id
+ORDER BY t.milliseconds DESC
+LIMIT 1;
+-- 23. Get the total revenue generated per genre.
+SELECT g.name AS genre_name, SUM(il.unit_price * il.quantity) AS total_revenue
+FROM genre g
+JOIN track t ON g.genre_id = t.genre_id
+JOIN invoice_line il ON t.track_id = il.track_id
+JOIN invoice i ON il.invoice_id = i.invoice_id
+GROUP BY g.name
+ORDER BY total_revenue DESC;
+-- 24. Retrieve a list of customers who have not made any purchases.
+SELECT CONCAT(first_name, ' ', last_name) AS customer_name
+FROM customer c
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM invoice i 
+    WHERE c.customer_id = i.customer_id
+);
+-- 25. Find all tracks that belong to more than one playlist.
+SELECT t.name AS track_name, COUNT(pt.playlist_id) AS playlist_count
+FROM track t
+JOIN playlist_track pt ON t.track_id = pt.track_id
+GROUP BY t.track_id
+HAVING COUNT(pt.playlist_id) > 1;
+-- 26. Calculate the total number of tracks sold for each media type.
+SELECT mt.name AS media_type, SUM(il.quantity) AS total_tracks_sold
+FROM media_type mt
+JOIN track t ON mt.media_type_id = t.media_type_id
+JOIN invoice_line il ON t.track_id = il.track_id
+GROUP BY mt.name;
+-- 27. List the names of all customers who have made purchases in more than one country.
+SELECT CONCAT(c.first_name, ' ', c.last_name) AS customer_name
+FROM customer c
+JOIN invoice i ON c.customer_id = i.customer_id
+GROUP BY c.customer_id
+HAVING COUNT(DISTINCT i.billing_country) > 1;
+-- 28. Get the artist who has sold the most tracks and the total sales amount.
+SELECT ar.name AS artist_name, SUM(il.quantity) AS total_tracks_sold
+FROM artist ar
+JOIN album a ON ar.artist_id = a.artist_id
+JOIN track t ON a.album_id = t.album_id
+JOIN invoice_line il ON t.track_id = il.track_id
+GROUP BY ar.artist_id
+ORDER BY total_tracks_sold DESC
+LIMIT 1;
+-- 29. List the albums that have no tracks associated with them.
+SELECT a.title AS album_title
+FROM album a
+LEFT JOIN track t ON a.album_id = t.album_id
+WHERE t.track_id IS NULL;
+-- 30. Retrieve the names of all employees who have not supervised any other employees.
+SELECT CONCAT(first_name, ' ', last_name) AS employee_name
+FROM employee e
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM employee e2
+    WHERE e2.reports_to = e.employee_id
+);
