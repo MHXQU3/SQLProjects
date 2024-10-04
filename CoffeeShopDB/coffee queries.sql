@@ -189,5 +189,4 @@ ON l.city_id = sh.city_id
 GROUP BY su.supplier_name
 ORDER BY supplied_to DESC;
 
--- 12,21,24,28,30 may require CTEs
 
